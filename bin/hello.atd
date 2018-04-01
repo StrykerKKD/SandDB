@@ -1,0 +1,7 @@
+type date = {
+  year : int;
+  month : int;
+  day : int;
+}
+
+type t = date list

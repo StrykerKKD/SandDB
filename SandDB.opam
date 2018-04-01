@@ -1,0 +1,15 @@
+opam-version: "1.2"
+version: "1.0"
+maintainer: "kkdstryker@gmail.com"
+authors: ["Robert Toth"]
+homepage: ""
+bug-reports: ""
+dev-repo: ""
+license: "MIT"
+build: [
+  ["jbuilder" "build" "--only" "SandDB" "--root" "." "-j" jobs "@install"]
+]
+depends: [
+    "atdgen" {= "1.12.0"}
+    "lwt" {= "3.3.0"}
+]
