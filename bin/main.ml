@@ -13,4 +13,5 @@ let%lwt reading =
 
 let atomic_stuff1 = atomic (fun channel -> write channel "macska") stdout
 let atomic_stuff2 = atomic (fun channel -> write channel "macska") stdout
-  
+
+let database = Database.create_database "test.txt" (module Hello_j)
