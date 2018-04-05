@@ -6,13 +6,16 @@
   (preprocess (pps (lwt.ppx)))))
 
 (rule
- ((targets (hello_t.ml hello_t.mli))
-  (action  (progn (run atdgen -t ../../hello.atd) (run mv ../../hello_t.ml ./hello_t.ml) (run mv ../../hello_t.mli ./hello_t.mli) ))))
+  ((targets (hello_t.ml hello_t.mli))
+  (deps (hello.atd))
+  (action (chdir ${ROOT} (run atdgen -t ${<})))))
 
 (rule
- ((targets (hello_j.ml hello_j.mli))
-  (action  (progn (run atdgen -j ../../hello.atd) (run mv ../../hello_j.ml ./hello_j.ml) (run mv ../../hello_j.mli ./hello_j.mli) ))))
+  ((targets (hello_j.ml hello_j.mli))
+  (deps (hello.atd))
+  (action (chdir ${ROOT} (run atdgen -j ${<})))))
 
 (rule
- ((targets (hello_b.ml hello_b.mli))
-  (action  (progn (run atdgen -b ../../hello.atd) (run mv ../../hello_b.ml ./hello_b.ml) (run mv ../../hello_b.mli ./hello_b.mli) ))))
+  ((targets (hello_b.ml hello_b.mli))
+  (deps (hello.atd))
+  (action (chdir ${ROOT} (run atdgen -b ${<})))))
