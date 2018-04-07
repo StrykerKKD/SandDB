@@ -1,0 +1,6 @@
+(jbuild_version 1)
+
+(library
+ ((name        sanddb)
+  (public_name sanddb)
+  (libraries (lwt))))
