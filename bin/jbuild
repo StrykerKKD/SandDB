@@ -3,7 +3,7 @@
 (executable
  ((name main)
   (libraries (atdgen lwt.unix))
-  (preprocess (pps (lwt.ppx)))))
+  (preprocess (pps (lwt_ppx)))))
 
 (rule
   ((targets (hello_t.ml hello_t.mli))
