@@ -1,6 +1,12 @@
-module type Serializer = sig
+module type Json_Serializer = sig
   type t
   val t_of_string : string -> t
+  val string_of_t : ?len:int -> t -> string
+end;;
+
+module type Biniou_Serializer = sig
+  type t
+  val t_of_string : ?pos:int -> string -> t
   val string_of_t : ?len:int -> t -> string
 end;;
 
@@ -9,24 +15,24 @@ module type Database = sig
   val file_path : string
   val read : string -> t
   val write : t -> string
-  val write_raw : string -> string
 end;;
 
-(*module Make_Database(Serializer : Serializer) : Database = struct
-  type t = Serializer.t
-  let read data = Serializer.t_of_string data
-  let write data = Serializer.string_of_t data
-  let write_raw data = data
-end;;*)
-
-let create_database file_path serializer =
-  let module Serializer = (val serializer : Serializer) in
+let create_json_database file_path json_serializer =
+  let module Json_Serializer = (val json_serializer : Json_Serializer) in
   (module struct
-    type t = Serializer.t
+    type t = Json_Serializer.t
     let file_path = file_path
-    let read data = Serializer.t_of_string data
-    let write data = Serializer.string_of_t data
-    let write_raw data = data
+    let read data = Json_Serializer.t_of_string data
+    let write data = Json_Serializer.string_of_t data
+  end : Database)
+
+let create_biniou_database file_path biniou_serializer =
+  let module Biniou_Serializer = (val biniou_serializer : Biniou_Serializer) in
+  (module struct
+    type t = Biniou_Serializer.t
+    let file_path = file_path
+    let read data = Biniou_Serializer.t_of_string data
+    let write data = Biniou_Serializer.string_of_t data
   end : Database)
 
 let write (type a) (module Database : Database with type t = a) (data : a) =

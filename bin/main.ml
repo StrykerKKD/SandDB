@@ -27,4 +27,5 @@ let reading =
 
 let _ = Lwt_main.run (Lwt.join [reading;writing])
 
-let database = Database.create_database "test.txt" (module Hello_j)
+let json_database = Database.create_json_database "test.txt" (module Hello_j)
+let biniou_database = Database.create_biniou_database "text.txt" (module Hello_b)
