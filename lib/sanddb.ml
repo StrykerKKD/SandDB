@@ -45,7 +45,7 @@ let create_json_database (type a) file_path json_serializer =
     let file_path = file_path
     let read () = database_json_read file_path json_serializer
     let write data = database_json_write file_path json_serializer data
-  end : Database)
+  end : Database with type t = a)
 
 let database_biniou_read (type a) file_path biniou_serializer =
   let module Biniou_Serializer = (val biniou_serializer : Biniou_Serializer with type t = a) in
@@ -73,7 +73,7 @@ let create_biniou_database (type a) file_path biniou_serializer =
     let file_path = file_path
     let read () = database_biniou_read file_path biniou_serializer
     let write data = database_biniou_write file_path biniou_serializer data
-  end : Database)
+  end : Database with type t = a)
 
 let write (type a) (module Database : Database with type t = a) (data : a) =
   Database.write data

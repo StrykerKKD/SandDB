@@ -2,12 +2,12 @@ opam-version: "1.2"
 version: "0.0"
 maintainer: "kkdstryker@gmail.com"
 authors: ["Robert Toth"]
-homepage: ""
-bug-reports: ""
-dev-repo: ""
+homepage: "https://github.com/StrykerKKD/SandDB"
+bug-reports: "https://github.com/StrykerKKD/SandDB/issues"
+dev-repo: "https://github.com/StrykerKKD/SandDB"
 license: "MIT"
 build: [
-  ["jbuilder" "build" "--only" "SandDB" "--root" "." "-j" jobs "@install"]
+  ["jbuilder" "build" "--only" "sanddb" "--root" "." "-j" jobs "@install"]
 ]
 depends: [
     "atdgen" {= "1.12.0"}

@@ -2,8 +2,7 @@
 
 (executable
  ((name main)
-  (libraries (atdgen lwt.unix))
-  (preprocess (pps (lwt_ppx)))))
+  (libraries (atdgen lwt.unix sanddb))))
 
 (rule
   ((targets (hello_t.ml hello_t.mli))
