@@ -7,4 +7,4 @@ let a_write = Sanddb.write json_database input
 let a_read = Sanddb.read json_database () >>= fun data ->
 Lwt_list.iter_p (fun date -> Lwt_io.printf "year: %d, month: %d, day: %d\n" date.year date.month date.day ) data
 
-let _ = Lwt_main.run (Lwt.join [a_read;a_read])
+let _ = Lwt_main.run (Lwt.join [a_write;a_read])
