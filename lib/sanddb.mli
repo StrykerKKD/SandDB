@@ -1,5 +1,6 @@
 module type Database = sig
   type t
+  val write_lock : Lwt_mutex.t
   val file_path : string
   val read : unit -> t Lwt.t
   val write : t -> unit Lwt.t

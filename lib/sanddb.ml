@@ -2,6 +2,7 @@ open Lwt.Infix
 
 module type Database = sig
   type t
+  val write_lock : Lwt_mutex.t
   val file_path : string
   val read : unit -> t Lwt.t
   val write : t -> unit Lwt.t
@@ -33,6 +34,7 @@ let create_json_database (type a) file_path json_serializer =
   let serializer = convert_json_serializer json_serializer in
   (module struct
     type t = a
+    let write_lock = Lwt_mutex.create ()
     let file_path = file_path
     let read () = database_read file_path serializer
     let write data = database_write file_path serializer data
@@ -43,13 +45,14 @@ let create_biniou_database (type a) file_path biniou_serializer =
   let serializer = convert_biniou_serializer biniou_serializer in
   (module struct
     type t = a
+    let write_lock = Lwt_mutex.create ()
     let file_path = file_path
     let read () = database_read file_path serializer
     let write data = database_write file_path serializer data
   end : Database with type t = a)
 
 let write (type a) (module Database : Database with type t = a) (data : a) =
-  Database.write data
+  Lwt_mutex.with_lock Database.write_lock (fun () -> Database.write data)
 
 let read (type a) (module Database : Database with type t = a) =
   Database.read
