@@ -8,6 +8,23 @@ module type Database = sig
   val insert_record : t -> unit Lwt.t
 end;;
 
+let deserialize_record_data (type a) record_data record_data_serializer =
+  let open Serializer_converter in
+  let module Record_Data_Serializer = (val record_data_serializer : Serializer with type t = a) in
+  Record_Data_Serializer.t_of_string record_data
+
+let deserialize_record record record_serializer record_data_serializer =
+  let open Serializer_converter in
+  let open Record_t in
+  let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
+  let record = Record_Serializer.t_of_string record in
+  let record_uuid = Base.Result.of_option ~error: (Failure "UUID parsing failed") (Uuidm.of_string record.id) in
+  let record_data = Base.Result.try_with (deserialize_record_data record.data record_data_serializer) in
+  match record_uuid, record_data with
+  | Ok uuid, Ok data -> Ok (uuid, data)
+  | Error _ as error ,  _ -> error
+  | _ , (Error _ as error) -> error 
+
 let database_read_records (type a) file_path serializer =
   let open Serializer_converter in
   let module Serializer = (val serializer : Serializer with type t = a) in
