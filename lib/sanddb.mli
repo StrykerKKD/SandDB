@@ -3,7 +3,7 @@ module type Database = sig
   type t
   val write_lock : Lwt_mutex.t
   val file_path : string
-  val read_records : unit -> t list Lwt.t
+  val read_records : unit -> (Uuidm.t * t, exn) result list Lwt.t
   val insert_record : t -> unit Lwt.t
 end;;
 
@@ -29,4 +29,4 @@ val insert_record : (module Database with type t = 'a) -> 'a -> unit Lwt.t
 (** [Sanddb.read database unit] reads the data from the database.
 Creates the database file if it doesn't exists.
 Throws exception if the file is empty.*)
-val read_records : (module Database with type t = 'a) -> unit -> 'a list Lwt.t
+val read_records : (module Database with type t = 'a) -> unit -> (Uuidm.t * 'a, exn) result list Lwt.t
