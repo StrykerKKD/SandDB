@@ -4,7 +4,7 @@ module type Database = sig
   val write_lock : Lwt_mutex.t
   val file_path : string
   val read_records : unit -> (Uuidm.t * t, exn) result list Lwt.t
-  val insert_record : t -> unit Lwt.t
+  val insert_record : t -> Uuidm.t Lwt.t
 end;;
 
 (** [Sanddb.create_json_database file_name json_serializer] will create a json database based on the provided:
@@ -24,7 +24,7 @@ val create_biniou_database : Lwt_io.file_name -> (module Serializers.Biniou_Seri
 
 (** [Sanddb.write database data] writes the data into the database, by overwriting the existing data.
 Creates the database file if it doesn't exists.*)
-val insert_record : (module Database with type t = 'a) -> 'a -> unit Lwt.t
+val insert_record : (module Database with type t = 'a) -> 'a -> Uuidm.t Lwt.t
 
 (** [Sanddb.read database unit] reads the data from the database.
 Creates the database file if it doesn't exists.

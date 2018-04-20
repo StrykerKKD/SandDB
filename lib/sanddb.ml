@@ -5,7 +5,7 @@ module type Database = sig
   val write_lock : Lwt_mutex.t
   val file_path : string
   val read_records : unit -> (Uuidm.t * t, exn) result list Lwt.t
-  val insert_record : t -> unit Lwt.t
+  val insert_record : t -> Uuidm.t Lwt.t
 end;;
 
 let deserialize_record_data (type a) record_data_serializer record_data =
@@ -43,17 +43,19 @@ let serialize_record record_serializer record_data_serializer record_data =
   let open Record_t in
   let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
   let serialized_record_data = serialize_record_data record_data_serializer record_data in
-  let id = Uuidm.v `V4 |> Uuidm.to_string in
-  let record = {id = id; data = serialized_record_data} in
-  Record_Serializer.string_of_t record
+  let id = Uuidm.v `V4 in
+  let serialized_id = Uuidm.to_string id in
+  let record = {id = serialized_id; data = serialized_record_data} in
+  (id, Record_Serializer.string_of_t record)
 
 let database_insert_record file_path record_serializer record_data_serializer record_data = 
-  let serialized_record = serialize_record record_serializer record_data_serializer record_data in
+  let (id, serialized_record) = serialize_record record_serializer record_data_serializer record_data in
   Lwt_io.with_file 
     ~flags:([Unix.O_WRONLY; Unix.O_NONBLOCK; Unix.O_APPEND; Unix.O_CREAT]) 
     ~mode: Output 
     file_path 
-    (fun channel -> Lwt_io.write_line channel serialized_record)
+    (fun channel -> Lwt_io.write_line channel serialized_record) >>= fun () ->
+  Lwt.return id
 
 let create_json_database (type a) file_path json_serializer =
   let open Serializer_converter in
