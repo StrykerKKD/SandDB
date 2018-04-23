@@ -5,6 +5,7 @@ module type Database = sig
   val file_path : string
   val read_records : unit -> (Uuidm.t * t, exn) result list Lwt.t
   val insert_record : t -> Uuidm.t Lwt.t
+  val insert_shadowing_record : Uuidm.t -> t -> Uuidm.t Lwt.t
 end;;
 
 (** [Sanddb.create_json_database file_name json_serializer] will create a json database based on the provided:
@@ -21,12 +22,15 @@ val create_json_database : Lwt_io.file_name -> (module Serializers.Json_Serializ
 *)
 val create_biniou_database : Lwt_io.file_name -> (module Serializers.Biniou_Serializer with type t = 'a) -> (module Database with type t = 'a)
 
-
-(** [Sanddb.write database data] writes the data into the database, by overwriting the existing data.
-Creates the database file if it doesn't exists.*)
-val insert_record : (module Database with type t = 'a) -> 'a -> Uuidm.t Lwt.t
-
-(** [Sanddb.read database unit] reads the data from the database.
+(** [Sanddb.read_records database unit] gives back every database record.
 Creates the database file if it doesn't exists.
 Throws exception if the file is empty.*)
 val read_records : (module Database with type t = 'a) -> unit -> (Uuidm.t * 'a, exn) result list Lwt.t
+
+(** [Sanddb.insert_record database data] inserts record into the database.
+Creates the database file if it doesn't exists.*)
+val insert_record : (module Database with type t = 'a) -> 'a -> Uuidm.t Lwt.t
+
+(** [Sanddb.insert_record database data] inserts record into the database with the given record id.
+Creates the database file if it doesn't exists.*)
+val insert_shadowing_record : (module Database with type t = 'a) -> Uuidm.t -> 'a -> Uuidm.t Lwt.t

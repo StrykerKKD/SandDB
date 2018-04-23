@@ -6,6 +6,7 @@ module type Database = sig
   val file_path : string
   val read_records : unit -> (Uuidm.t * t, exn) result list Lwt.t
   val insert_record : t -> Uuidm.t Lwt.t
+  val insert_shadowing_record : Uuidm.t -> t -> Uuidm.t Lwt.t
 end;;
 
 let deserialize_record_data (type a) record_data_serializer record_data =
@@ -38,51 +39,60 @@ let serialize_record_data (type a) record_data_serializer record_data =
   let module Record_Data_Serializer = (val record_data_serializer : Serializer with type t = a) in
   Record_Data_Serializer.string_of_t record_data
 
-let serialize_record record_serializer record_data_serializer record_data =
+let serialize_record record_serializer record_data_serializer record_id record_data =
   let open Serializer_converter in
   let open Record_t in
   let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
   let serialized_record_data = serialize_record_data record_data_serializer record_data in
-  let id = Uuidm.v `V4 in
-  let serialized_id = Uuidm.to_string id in
+  let serialized_id = Uuidm.to_string record_id in
   let record = {id = serialized_id; data = serialized_record_data} in
-  (id, Record_Serializer.string_of_t record)
+  Record_Serializer.string_of_t record
 
-let database_insert_record file_path record_serializer record_data_serializer record_data = 
-  let (id, serialized_record) = serialize_record record_serializer record_data_serializer record_data in
+let write_to_file file_path serialized_record =
   Lwt_io.with_file 
     ~flags:([Unix.O_WRONLY; Unix.O_NONBLOCK; Unix.O_APPEND; Unix.O_CREAT]) 
     ~mode: Output 
     file_path 
-    (fun channel -> Lwt_io.write_line channel serialized_record) >>= fun () ->
-  Lwt.return id
+    (fun channel -> Lwt_io.write_line channel serialized_record)
 
-let create_json_database (type a) file_path json_serializer =
+let database_insert_record file_path record_serializer record_data_serializer record_data =
+  let record_id = Uuidm.v `V4 in 
+  let serialized_record = serialize_record record_serializer record_data_serializer record_id record_data in
+  write_to_file file_path serialized_record >>= fun () ->
+  Lwt.return record_id
+
+let database_insert_shadowing_record file_path record_serializer record_data_serializer record_id record_data =
+  let serialized_record = serialize_record record_serializer record_data_serializer record_id record_data in
+  write_to_file file_path serialized_record >>= fun () ->
+  Lwt.return record_id
+
+let create_database_module (type a) file_path record_serializer record_data_serializer = 
+  (module struct
+      type t = a
+      let write_lock = Lwt_mutex.create ()
+      let file_path = file_path
+      let read_records () = database_read_records file_path record_serializer record_data_serializer
+      let insert_record record_data  = database_insert_record file_path record_serializer record_data_serializer record_data
+      let insert_shadowing_record record_id record_data = database_insert_shadowing_record file_path record_serializer record_data_serializer record_id record_data
+    end : Database with type t = a)
+
+let create_json_database file_path json_serializer =
   let open Serializer_converter in
   let record_serializer = convert_json_serializer (module Record_j) in
   let record_data_serializer = convert_json_serializer json_serializer in
-  (module struct
-    type t = a
-    let write_lock = Lwt_mutex.create ()
-    let file_path = file_path
-    let read_records () = database_read_records file_path record_serializer record_data_serializer
-    let insert_record record_data  = database_insert_record file_path record_serializer record_data_serializer record_data
-  end : Database with type t = a)
+  create_database_module file_path record_serializer record_data_serializer
 
-let create_biniou_database (type a) file_path biniou_serializer =
+let create_biniou_database file_path biniou_serializer =
   let open Serializer_converter in
   let record_serializer = convert_biniou_serializer (module Record_b) in
   let record_data_serializer = convert_biniou_serializer biniou_serializer in
-  (module struct
-    type t = a
-    let write_lock = Lwt_mutex.create ()
-    let file_path = file_path
-    let read_records () = database_read_records file_path record_serializer record_data_serializer
-    let insert_record record_data = database_insert_record file_path record_serializer record_data_serializer record_data
-  end : Database with type t = a)
+  create_database_module file_path record_serializer record_data_serializer
+
+let read_records (type a) (module Database : Database with type t = a) =
+  Database.read_records
 
 let insert_record (type a) (module Database : Database with type t = a) (record_data : a) =
   Lwt_mutex.with_lock Database.write_lock (fun () -> Database.insert_record record_data)
 
-let read_records (type a) (module Database : Database with type t = a) =
-  Database.read_records
+let insert_shadowing_record (type a) (module Database : Database with type t = a) record_id (record_data : a) =
+  Lwt_mutex.with_lock Database.write_lock (fun () -> Database.insert_shadowing_record record_id record_data)
