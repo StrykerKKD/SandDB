@@ -1,12 +1,38 @@
+(** [Sanddb.Record_Id] is the basic record id type, which idetifies a record in the database.*)
+module Record_Id : sig
+  type t = Uuidm.t
+  type version = [ `V3 of t * string | `V4 | `V5 of t * string ]
+  val v : version -> t
+  val create : version -> t
+  val v3 : t -> string -> t
+  val v5 : t -> string -> t
+  val v4_gen : Random.State.t -> unit -> t
+  val nil : t
+  val ns_dns : t
+  val ns_url : t
+  val ns_oid : t
+  val ns_X500 : t
+  val compare : t -> t -> int
+  val equal : t -> t -> bool
+  val of_bytes : ?pos:int -> string -> t option
+  val to_bytes : t -> string
+  val unsafe_to_bytes : t -> string
+  val of_string : ?pos:int -> string -> t option
+  val to_string : ?upper:bool -> t -> string
+  val pp : Format.formatter -> t -> unit
+  val pp_string : ?upper:bool -> Format.formatter -> t -> unit
+  val print : ?upper:bool -> Format.formatter -> t -> unit
+end
+
 (** [Sanddb.Database] is the basic module type that will be used to communicate with the database.*)
 module type Database = sig
   type t
   val write_lock : Lwt_mutex.t
   val file_path : string
-  val read_records : unit -> (Uuidm.t * t, exn) result list Lwt.t
-  val insert_record : t -> Uuidm.t Lwt.t
-  val insert_shadowing_record : Uuidm.t -> t -> Uuidm.t Lwt.t
-end;;
+  val read_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
+  val insert_record : t -> Record_Id.t Lwt.t
+  val insert_shadowing_record : Record_Id.t -> t -> Record_Id.t Lwt.t
+end
 
 (** [Sanddb.create_json_database file_name json_serializer] will create a json database based on the provided:
  - [file_name] which will be tha base of the database
@@ -25,12 +51,12 @@ val create_biniou_database : Lwt_io.file_name -> (module Serializers.Biniou_Seri
 (** [Sanddb.read_records database unit] gives back every database record.
 Creates the database file if it doesn't exists.
 Throws exception if the file is empty.*)
-val read_records : (module Database with type t = 'a) -> unit -> (Uuidm.t * 'a, exn) result list Lwt.t
+val read_records : (module Database with type t = 'a) -> unit -> (Record_Id.t * 'a, exn) result list Lwt.t
 
 (** [Sanddb.insert_record database data] inserts record into the database.
 Creates the database file if it doesn't exists.*)
-val insert_record : (module Database with type t = 'a) -> 'a -> Uuidm.t Lwt.t
+val insert_record : (module Database with type t = 'a) -> 'a -> Record_Id.t Lwt.t
 
 (** [Sanddb.insert_record database data] inserts record into the database with the given record id.
 Creates the database file if it doesn't exists.*)
-val insert_shadowing_record : (module Database with type t = 'a) -> Uuidm.t -> 'a -> Uuidm.t Lwt.t
+val insert_shadowing_record : (module Database with type t = 'a) -> Uuidm.t -> 'a -> Record_Id.t Lwt.t

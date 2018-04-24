@@ -1,13 +1,17 @@
 open Lwt.Infix
 
+module Record_Id = struct
+  include Uuidm
+end
+
 module type Database = sig
   type t
   val write_lock : Lwt_mutex.t
   val file_path : string
-  val read_records : unit -> (Uuidm.t * t, exn) result list Lwt.t
-  val insert_record : t -> Uuidm.t Lwt.t
-  val insert_shadowing_record : Uuidm.t -> t -> Uuidm.t Lwt.t
-end;;
+  val read_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
+  val insert_record : t -> Record_Id.t Lwt.t
+  val insert_shadowing_record : Record_Id.t -> t -> Record_Id.t Lwt.t
+end
 
 let deserialize_record_data (type a) record_data_serializer record_data =
   let open Serializer_converter in
@@ -56,7 +60,7 @@ let write_to_file file_path serialized_record =
     (fun channel -> Lwt_io.write_line channel serialized_record)
 
 let database_insert_record file_path record_serializer record_data_serializer record_data =
-  let record_id = Uuidm.v `V4 in 
+  let record_id = Record_Id.v `V4 in 
   let serialized_record = serialize_record record_serializer record_data_serializer record_id record_data in
   write_to_file file_path serialized_record >>= fun () ->
   Lwt.return record_id
