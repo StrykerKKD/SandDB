@@ -8,7 +8,8 @@ module type Database = sig
   type t
   val write_lock : Lwt_mutex.t
   val file_path : string
-  val read_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
+  val read_all_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
+  val read_visible_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
   val insert_record : t -> Record_Id.t Lwt.t
   val insert_shadowing_record : Record_Id.t -> t -> Record_Id.t Lwt.t
 end
@@ -23,20 +24,44 @@ let deserialize_record record_serializer record_data_serializer record =
   let open Record_t in
   let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
   let deserialized_record = Record_Serializer.t_of_string record in
-  let record_uuid = Base.Result.of_option ~error: (Failure "UUID parsing failed") (Uuidm.of_string deserialized_record.id) in
+  let record_id = Base.Result.of_option ~error: (Failure "Record id parsing failed") (Record_Id.of_string deserialized_record.id) in
   let record_data = Base.Result.try_with (fun () -> deserialize_record_data record_data_serializer deserialized_record.data) in
-  match record_uuid, record_data with
-  | Ok uuid, Ok data -> Ok (uuid, data)
+  match record_id, record_data with
+  | Ok id, Ok data -> Ok (id, data)
   | Error _ as error ,  _ -> error
   | _ , (Error _ as error) -> error 
 
-let database_read_records file_path record_serializer record_data_serializer =
+let database_read_all_records file_path record_serializer record_data_serializer =
   Lwt_io.with_file ~mode: Input file_path (fun channel -> Lwt_io.read channel) >>= fun raw_data ->
   let cleaned_raw_data = String.trim raw_data in
   let raw_records = String.split_on_char '\n' cleaned_raw_data in
   let serializer = deserialize_record record_serializer record_data_serializer in
   let records = List.map serializer raw_records in
   Lwt.return records
+
+let filter_duplicate_record record unique_record_ids accumulator =
+  match record with
+  | Ok (id, data) ->
+    if List.mem id unique_record_ids then 
+      accumulator
+    else
+      record :: accumulator
+  | error -> error :: accumulator
+
+let rec filter_duplicate_records record_deserializer raw_records unique_record_ids accumulator  =
+  match raw_records with
+  | [] -> accumulator
+  | raw_record :: rest_raw_records ->
+    let record = record_deserializer raw_record in
+    let new_accumulator = filter_duplicate_records record_deserializer rest_raw_records unique_record_ids accumulator in
+    filter_duplicate_record record unique_record_ids new_accumulator
+
+let database_read_visible_records file_path record_serializer record_data_serializer =
+  Lwt_io.with_file ~mode: Input file_path (fun channel -> Lwt_io.read channel) >|= fun raw_data ->
+  let cleaned_raw_data = String.trim raw_data in
+  let raw_records = String.split_on_char '\n' cleaned_raw_data in
+  let record_deserializer = deserialize_record record_serializer record_data_serializer in
+  filter_duplicate_records record_deserializer raw_records [] []
 
 let serialize_record_data (type a) record_data_serializer record_data =
   let open Serializer_converter in
@@ -48,7 +73,7 @@ let serialize_record record_serializer record_data_serializer record_id record_d
   let open Record_t in
   let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
   let serialized_record_data = serialize_record_data record_data_serializer record_data in
-  let serialized_id = Uuidm.to_string record_id in
+  let serialized_id = Record_Id.to_string record_id in
   let record = {id = serialized_id; data = serialized_record_data} in
   Record_Serializer.string_of_t record
 
@@ -75,7 +100,8 @@ let create_database_module (type a) file_path record_serializer record_data_seri
       type t = a
       let write_lock = Lwt_mutex.create ()
       let file_path = file_path
-      let read_records () = database_read_records file_path record_serializer record_data_serializer
+      let read_all_records () = database_read_all_records file_path record_serializer record_data_serializer
+      let read_visible_records () = database_read_visible_records file_path record_serializer record_data_serializer
       let insert_record record_data  = database_insert_record file_path record_serializer record_data_serializer record_data
       let insert_shadowing_record record_id record_data = database_insert_shadowing_record file_path record_serializer record_data_serializer record_id record_data
     end : Database with type t = a)
@@ -92,8 +118,11 @@ let create_biniou_database file_path biniou_serializer =
   let record_data_serializer = convert_biniou_serializer biniou_serializer in
   create_database_module file_path record_serializer record_data_serializer
 
-let read_records (type a) (module Database : Database with type t = a) =
-  Database.read_records
+let read_all_records (type a) (module Database : Database with type t = a) =
+  Database.read_all_records
+
+let read_visible_records (type a) (module Database : Database with type t = a) =
+  Database.read_visible_records
 
 let insert_record (type a) (module Database : Database with type t = a) (record_data : a) =
   Lwt_mutex.with_lock Database.write_lock (fun () -> Database.insert_record record_data)

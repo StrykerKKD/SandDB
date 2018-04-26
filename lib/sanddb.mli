@@ -29,7 +29,8 @@ module type Database = sig
   type t
   val write_lock : Lwt_mutex.t
   val file_path : string
-  val read_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
+  val read_all_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
+  val read_visible_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
   val insert_record : t -> Record_Id.t Lwt.t
   val insert_shadowing_record : Record_Id.t -> t -> Record_Id.t Lwt.t
 end
@@ -48,15 +49,23 @@ val create_json_database : Lwt_io.file_name -> (module Serializers.Json_Serializ
 *)
 val create_biniou_database : Lwt_io.file_name -> (module Serializers.Biniou_Serializer with type t = 'a) -> (module Database with type t = 'a)
 
-(** [Sanddb.read_records database unit] gives back every database record.
+(** [Sanddb.read_all_records database unit] gives back every database record, both visible and shadowed ones. The result can contain duplicate record ids.
+The first record in the list is the oldest record and the last one is the newest record.
 Creates the database file if it doesn't exists.
 Throws exception if the file is empty.*)
-val read_records : (module Database with type t = 'a) -> unit -> (Record_Id.t * 'a, exn) result list Lwt.t
+val read_all_records : (module Database with type t = 'a) -> unit -> (Record_Id.t * 'a, exn) result list Lwt.t
 
-(** [Sanddb.insert_record database data] inserts record into the database.
+(** [Sanddb.read_visible_records database unit] gives back every visible(not shadowed) database record, which also means there is no duplicate record id in the result.
+The first record in the list is the newest record and the last one is the oldest record.
+Creates the database file if it doesn't exists.
+Throws exception if the file is empty.*)
+val read_visible_records : (module Database with type t = 'a) -> unit -> (Record_Id.t * 'a, exn) result list Lwt.t
+
+(** [Sanddb.insert_record database data] inserts record into the database. The record id is generated automatically and given back as a result.
 Creates the database file if it doesn't exists.*)
 val insert_record : (module Database with type t = 'a) -> 'a -> Record_Id.t Lwt.t
 
-(** [Sanddb.insert_record database data] inserts record into the database with the given record id.
+(** [Sanddb.insert_record database data] inserts record into the database with the given record id. 
+It can shadow an older record if it has the same record id as the new one.
 Creates the database file if it doesn't exists.*)
 val insert_shadowing_record : (module Database with type t = 'a) -> Uuidm.t -> 'a -> Record_Id.t Lwt.t
