@@ -36,32 +36,24 @@ let database_read_all_records file_path record_serializer record_data_serializer
   let cleaned_raw_data = String.trim raw_data in
   let raw_records = String.split_on_char '\n' cleaned_raw_data in
   let serializer = deserialize_record record_serializer record_data_serializer in
-  let records = List.map serializer raw_records in
+  let records = Base.List.map ~f:serializer raw_records in
   Lwt.return records
 
-let filter_duplicate_record record unique_record_ids accumulator =
+let filter_duplicate_record record (unique_record_ids, accumulator) =
   match record with
   | Ok (id, data) ->
-    if List.mem id unique_record_ids then 
-      accumulator
+    if Base.List.mem unique_record_ids id ~equal: Record_Id.equal  then 
+      (unique_record_ids, accumulator)
     else
-      record :: accumulator
-  | error -> error :: accumulator
-
-let rec filter_duplicate_records record_deserializer raw_records unique_record_ids accumulator  =
-  match raw_records with
-  | [] -> accumulator
-  | raw_record :: rest_raw_records ->
-    let record = record_deserializer raw_record in
-    let new_accumulator = filter_duplicate_records record_deserializer rest_raw_records unique_record_ids accumulator in
-    filter_duplicate_record record unique_record_ids new_accumulator
+      (id :: unique_record_ids , record :: accumulator)
+  | error -> (unique_record_ids, error :: accumulator)  
 
 let database_read_visible_records file_path record_serializer record_data_serializer =
-  Lwt_io.with_file ~mode: Input file_path (fun channel -> Lwt_io.read channel) >|= fun raw_data ->
-  let cleaned_raw_data = String.trim raw_data in
-  let raw_records = String.split_on_char '\n' cleaned_raw_data in
-  let record_deserializer = deserialize_record record_serializer record_data_serializer in
-  filter_duplicate_records record_deserializer raw_records [] []
+  database_read_all_records file_path record_serializer record_data_serializer >>= fun records ->
+  let (_, visible_records) = Base.List.fold_right records
+    ~f:filter_duplicate_record
+    ~init:([],[]) in
+  Lwt.return visible_records
 
 let serialize_record_data (type a) record_data_serializer record_data =
   let open Serializer_converter in
