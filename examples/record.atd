@@ -1,7 +1,6 @@
-type date = {
+type t = {
   year : int;
   month : int;
   day : int;
+  data: string;
 }
-
-type t = date list

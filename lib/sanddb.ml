@@ -19,17 +19,21 @@ let deserialize_record_data (type a) record_data_serializer record_data =
   let module Record_Data_Serializer = (val record_data_serializer : Serializer with type t = a) in
   Record_Data_Serializer.t_of_string record_data
 
-let deserialize_record record_serializer record_data_serializer record =
-  let open Serializer_converter in
+let deserialize_record_content record_data_serializer deserialized_record = 
   let open Record_t in
-  let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
-  let deserialized_record = Record_Serializer.t_of_string record in
   let record_id = Base.Result.of_option ~error: (Failure "Record id parsing failed") (Record_Id.of_string deserialized_record.id) in
   let record_data = Base.Result.try_with (fun () -> deserialize_record_data record_data_serializer deserialized_record.data) in
   match record_id, record_data with
   | Ok id, Ok data -> Ok (id, data)
   | Error _ as error ,  _ -> error
-  | _ , (Error _ as error) -> error 
+  | _ , (Error _ as error) -> error
+
+let deserialize_record record_serializer record_data_serializer record =
+  let open Serializer_converter in
+  let open Record_t in
+  let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
+  let deserialized_record = Base.Result.try_with (fun () -> Record_Serializer.t_of_string record)  in
+  Base.Result.bind deserialized_record ~f:(deserialize_record_content record_data_serializer)
 
 let database_read_all_records file_path record_serializer record_data_serializer =
   Lwt_io.with_file ~mode: Input file_path (fun channel -> Lwt_io.read channel) >>= fun raw_data ->
