@@ -6,7 +6,6 @@ end
 
 module type Database = sig
   type t
-  val write_lock : Lwt_mutex.t
   val file_path : string
   val read_all_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
   val read_visible_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
@@ -55,8 +54,8 @@ let filter_duplicate_record record (unique_record_ids, accumulator) =
 let database_read_visible_records file_path record_serializer record_data_serializer =
   database_read_all_records file_path record_serializer record_data_serializer >>= fun records ->
   let (_, visible_records) = Base.List.fold_right records
-    ~f:filter_duplicate_record
-    ~init:([],[]) in
+      ~f:filter_duplicate_record
+      ~init:([],[]) in
   Lwt.return visible_records
 
 let serialize_record_data (type a) record_data_serializer record_data =
@@ -93,14 +92,14 @@ let database_insert_shadowing_record file_path record_serializer record_data_ser
 
 let create_database_module (type a) file_path record_serializer record_data_serializer = 
   (module struct
-      type t = a
-      let write_lock = Lwt_mutex.create ()
-      let file_path = file_path
-      let read_all_records () = database_read_all_records file_path record_serializer record_data_serializer
-      let read_visible_records () = database_read_visible_records file_path record_serializer record_data_serializer
-      let insert_record record_data  = database_insert_record file_path record_serializer record_data_serializer record_data
-      let insert_shadowing_record record_id record_data = database_insert_shadowing_record file_path record_serializer record_data_serializer record_id record_data
-    end : Database with type t = a)
+    type t = a
+    let write_lock = Lwt_mutex.create ()
+    let file_path = file_path
+    let read_all_records () = database_read_all_records file_path record_serializer record_data_serializer
+    let read_visible_records () = database_read_visible_records file_path record_serializer record_data_serializer
+    let insert_record record_data  = database_insert_record file_path record_serializer record_data_serializer record_data
+    let insert_shadowing_record record_id record_data = database_insert_shadowing_record file_path record_serializer record_data_serializer record_id record_data
+  end : Database with type t = a)
 
 let create_json_database file_path json_serializer =
   let open Serializer_converter in
@@ -121,7 +120,7 @@ let read_visible_records (type a) (module Database : Database with type t = a) =
   Database.read_visible_records
 
 let insert_record (type a) (module Database : Database with type t = a) (record_data : a) =
-  Lwt_mutex.with_lock Database.write_lock (fun () -> Database.insert_record record_data)
+  Database.insert_record record_data
 
 let insert_shadowing_record (type a) (module Database : Database with type t = a) record_id (record_data : a) =
-  Lwt_mutex.with_lock Database.write_lock (fun () -> Database.insert_shadowing_record record_id record_data)
+  Database.insert_shadowing_record record_id record_data

@@ -27,7 +27,6 @@ end
 (** [Sanddb.Database] is the basic module type that will be used to communicate with the database.*)
 module type Database = sig
   type t
-  val write_lock : Lwt_mutex.t
   val file_path : string
   val read_all_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
   val read_visible_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
