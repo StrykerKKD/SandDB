@@ -16,3 +16,4 @@ depends: [
   "uuidm" {>= "0.9.6"}
   "base" {>= "v0.11.0"}
 ]
+available: [ocaml-version >= "4.03.0"]
