@@ -1,6 +1,6 @@
 # SandDB: A simple immutable database for the masses
 
-SandDB is a database, which is:
+SandDB is:
 - Simple: It only does one thing, which is persisting data in a file.
 - Easy to use: SandDB's API is extremely small, so you only need to know few functions to use it.
 - Type safe: Every common dangerous operation (like parsing) is covered by the Result type, so you will know where to expect errors.
