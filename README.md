@@ -80,16 +80,13 @@ This how to is based on the example that you can find in the examples directory.
 
     ```ocaml
     (*Creating a json based database with test.txt file and Record_j generated serializer*)
-    let json_database = Sanddb.create_json_database "test.txt" (module Record_j)
+    let database = Sanddb.create_json_database "test.txt" (module Record_j)
 
     (*or*)
 
     (*Creating a biniou based database with test.txt file and Record_b generated serializer*)
-    let biniou_database = Sanddb.create_biniou_database "test.txt" (module Record_b)
-
+    let database = Sanddb.create_biniou_database "test.txt" (module Record_b)
     ```
-
-    In the following steps I will only use the `json_database`, because the workflow is exactly the same with the `biniou_database`.
 
 
 4. Insert record
@@ -98,7 +95,7 @@ This how to is based on the example that you can find in the examples directory.
 
     ```ocaml
     let record = { year = 2018; month = 4; day = 30; data="Some data 1"}
-    Sanddb.insert_record json_database record
+    Sanddb.insert_record database record
     ```
 
 5. Insert shadowing record
@@ -107,7 +104,7 @@ This how to is based on the example that you can find in the examples directory.
 
     ```ocaml
     let shadowing_record = { year = 2018; month = 5; day = 1; data="Some data 2"}
-    Sanddb.insert_shadowing_record json_database id shadowing_record
+    Sanddb.insert_shadowing_record database id shadowing_record
     ```
 
 6. Read all records
@@ -116,7 +113,7 @@ This how to is based on the example that you can find in the examples directory.
     You will get a list of tuples, where the first item is the oldest and the last item is the newest in the list. The tuple will consist of a record id and the record's content.
 
     ```ocaml
-    Sanddb.read_all_records json_database ()
+    Sanddb.read_all_records database ()
     ```
 
 7. Read visible records
@@ -124,5 +121,5 @@ This how to is based on the example that you can find in the examples directory.
     This will only read out the visible records in the database and will give back a list of tuples, where the first item is the newest and the last item is the oldest. So the order of the list items will be different in this case.
 
     ```ocaml
-    Sanddb.read_visible_records json_database ()
+    Sanddb.read_visible_records database ()
     ```
