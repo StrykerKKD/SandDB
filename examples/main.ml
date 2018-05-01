@@ -1,7 +1,8 @@
 open Record_t
 open Lwt.Infix
 
-let json_database = Sanddb.create_json_database "test.txt" (module Record_j)
+let database = Sanddb.create_json_database "test.txt" (module Record_j)
+(*let database = Sanddb.create_biniou_database "test.txt" (module Record_b)*)
 let record = { year = 2018; month = 4; day = 30; data="Some data 1"}
 let shadowing_record = { year = 2018; month = 5; day = 1; data="Some data 2"}
 
@@ -15,11 +16,11 @@ let print_records read_mode records =
   Lwt_list.iter_p print_record_content records
 
 let main () =
-  Sanddb.insert_record json_database record >>= fun id ->
-  Sanddb.insert_shadowing_record json_database id shadowing_record >>= fun id ->
-  Sanddb.read_all_records json_database () >>= fun records ->
+  Sanddb.insert_record database record >>= fun id ->
+  Sanddb.insert_shadowing_record database id shadowing_record >>= fun id ->
+  Sanddb.read_all_records database () >>= fun records ->
   print_records "All" records >>= fun () ->
-  Sanddb.read_visible_records json_database () >>= fun records ->
+  Sanddb.read_visible_records database () >>= fun records ->
   print_records "Visible" records
 
 let _ = Lwt_main.run @@ main()

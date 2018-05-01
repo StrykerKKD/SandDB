@@ -31,7 +31,8 @@ let deserialize_record record_serializer record_data_serializer record =
   let open Serializer_converter in
   let open Record_t in
   let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
-  let deserialized_record = Base.Result.try_with (fun () -> Record_Serializer.t_of_string record)  in
+  let unescaped_record = Caml.Scanf.unescaped record in
+  let deserialized_record = Base.Result.try_with (fun () -> Record_Serializer.t_of_string unescaped_record)  in
   Base.Result.bind deserialized_record ~f:(deserialize_record_content record_data_serializer)
 
 let database_read_all_records file_path record_serializer record_data_serializer =
@@ -70,7 +71,8 @@ let serialize_record record_serializer record_data_serializer record_id record_d
   let serialized_record_data = serialize_record_data record_data_serializer record_data in
   let serialized_id = Record_Id.to_string record_id in
   let record = {id = serialized_id; data = serialized_record_data} in
-  Record_Serializer.string_of_t record
+  let serialized_record = Record_Serializer.string_of_t record in 
+  Caml.String.escaped serialized_record
 
 let write_to_file file_path serialized_record =
   Lwt_io.with_file 
@@ -93,7 +95,6 @@ let database_insert_shadowing_record file_path record_serializer record_data_ser
 let create_database_module (type a) file_path record_serializer record_data_serializer = 
   (module struct
     type t = a
-    let write_lock = Lwt_mutex.create ()
     let file_path = file_path
     let read_all_records () = database_read_all_records file_path record_serializer record_data_serializer
     let read_visible_records () = database_read_visible_records file_path record_serializer record_data_serializer
