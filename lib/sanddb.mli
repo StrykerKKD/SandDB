@@ -39,14 +39,14 @@ end
  - [json_serializer] which will be responsible with the serialization between the database and the client
  This function will return a first class database module, which can be used to communicate with the database.
 *)
-val create_json_database : Lwt_io.file_name -> (module Serializers.Json_Serializer with type t = 'a) -> (module Database with type t = 'a)
+val create_json_database : string -> (module Serializers.Json_Serializer with type t = 'a) -> (module Database with type t = 'a)
 
 (** [Sanddb.create_biniou_database file_name biniou_serializer] will create a biniou database based on the provided:
  - [file_name] which will be tha base of the database
  - [biniou_serializer] which will be responsible with the serialization between the database and the client
  This function will return a first class database module, which can be used to communicate with the database.
 *)
-val create_biniou_database : Lwt_io.file_name -> (module Serializers.Biniou_Serializer with type t = 'a) -> (module Database with type t = 'a)
+val create_biniou_database : string -> (module Serializers.Biniou_Serializer with type t = 'a) -> (module Database with type t = 'a)
 
 (** [Sanddb.read_all_records database unit] gives back every database record, both visible and shadowed ones. The result can contain duplicate record ids.
 The first record in the list is the oldest record and the last one is the newest record.
@@ -67,4 +67,4 @@ val insert_record : (module Database with type t = 'a) -> 'a -> Record_Id.t Lwt.
 (** [Sanddb.insert_record database data] inserts record into the database with the given record id. 
 It can shadow an older record if it has the same record id as the new one.
 Creates the database file if it doesn't exists.*)
-val insert_shadowing_record : (module Database with type t = 'a) -> Uuidm.t -> 'a -> Record_Id.t Lwt.t
+val insert_shadowing_record : (module Database with type t = 'a) -> Record_Id.t -> 'a -> Record_Id.t Lwt.t
