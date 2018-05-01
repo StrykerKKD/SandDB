@@ -1,10 +1,9 @@
 opam-version: "1.2"
-version: "0.1"
-maintainer: "kkdstryker@gmail.com"
+maintainer: "kRobert Toth <kdstryker@gmail.com>"
 authors: ["Robert Toth"]
 homepage: "https://github.com/StrykerKKD/SandDB"
 bug-reports: "https://github.com/StrykerKKD/SandDB/issues"
-dev-repo: "https://github.com/StrykerKKD/SandDB"
+dev-repo: "https://github.com/StrykerKKD/SandDB.git"
 license: "MIT"
 build: [
   ["jbuilder" "build" "--only" "sanddb" "--root" "." "-j" jobs "@install"]
