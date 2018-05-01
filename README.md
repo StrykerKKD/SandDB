@@ -8,25 +8,30 @@ SandDB is:
 - Crud capable: Even though the database is immutable you still can update and delete records, by shadowing them.
 - Version keeping: Every update and delete operation will produce a new version of the affected record, without modifying the original, so you will have all versions of your data.
 - Concurrent: SandDB is based on lwt, so every database operation is asynchronous.
-- Support multiple serializers: SandDB supports both json and biniou serialization format thanks to the atdgen library.
+- Supports multiple serializers: SandDB supports both json and biniou serialization format thanks to the atdgen library.
 
 ## How to use it?
 This how to is based on the example that you can find in the examples directory.
 
+0. Install SandDB
+    ```
+    opam install sanddb
+    ```
+
 1. Define your record's type with atd
 
-SandDB's one of main component is the atdgen library, so you must be a little bit familiar with it to be able to use the database.
+    One of the most important component of SandDB is the atd library, so you must be a little bit familiar with it to be able to use the database.
 
-You can see above we defined a record which contains a date fields and a data field. It's important to notice that your record's root type's name must be t, because otherwise SandDB can't recognize which type to use. You can learn more about atd [here](https://mjambon.github.io/atdgen-doc/).
+    You can see below we defined a record which contains a date fields and a data field. It's important to notice that your record's root type's name must be t, because otherwise SandDB can't recognize which type to use. You can learn more about atd [here](https://mjambon.github.io/atdgen-doc/).
 
-```
-type t = {
-	year : int;
-	month : int;
-	day : int;
-	data: string;
-}
-```
+    ```
+    type t = {
+        year : int;
+        month : int;
+        day : int;
+        data: string;
+    }
+    ```
 
 2. Generate atd serializers for your record's type
 
@@ -53,6 +58,7 @@ type t = {
         (deps (record.atd))
         (action (chdir ${ROOT} (run atdgen -b ${<})))))
     ```
+    ----
 
     b. Generate maualy by using atdgen
 
@@ -63,57 +69,58 @@ type t = {
     $ atdgen -j record.atd     # produces OCaml code dealing with JSON
     $ atdgen -b record.atd     # produces OCaml code dealing with Biniou
 	```
-You don't need to generate both json and biniou serializer if you are only using one of them.
+    
+    Notice: You don't need to generate both json and biniou serializer if you are only using one of them.
 
-3. Create database
+3. Create the database
 
-Database creation only needs two things:
-- Database file, which in our case will be `test.txt`
-- Data serializer, which we generated in the previous steps
+    Database creation only needs two things:
+    - Database file, which in our case will be `test.txt`
+    - Data serializer, which we generated in the previous steps
 
-```ocaml
-(*Creating a json based database with test.txt file and Record_j generated serializer*)
-let json_database = Sanddb.create_json_database "test.txt" (module Record_j)
+    ```ocaml
+    (*Creating a json based database with test.txt file and Record_j generated serializer*)
+    let json_database = Sanddb.create_json_database "test.txt" (module Record_j)
 
-(*Creating a biniou based database with test.txt file and Record_b generated serializer*)
-let biniou_database = Sanddb.create_biniou_database "test.txt" (module Record_b)
+    (*Creating a biniou based database with test.txt file and Record_b generated serializer*)
+    let biniou_database = Sanddb.create_biniou_database "test.txt" (module Record_b)
 
-```
+    ```
 
-In the following steps I will only use the `json_database`, because the workflow is exactly the same with the `biniou_database`.
+    In the following steps I will only use the `json_database`, because the workflow is exactly the same with the `biniou_database`.
 
 
 4. Insert record
 
-When you are inserting a record into the database you basically appending the record into the database file with a generated uuid, which will be the record's id.
+    When you are inserting a record into the database you basically appending the record into the database file with a generated uuid, which will be the record's id.
 
-```ocaml
-let record = { year = 2018; month = 4; day = 30; data="Some data 1"}
-Sanddb.insert_record json_database record
-```
+    ```ocaml
+    let record = { year = 2018; month = 4; day = 30; data="Some data 1"}
+    Sanddb.insert_record json_database record
+    ```
 
 5. Insert shadowing record
 
-One of the main feature of SandDb is that it's immutable, which is a good thing, but sometimes you want to update or delete a record. That's the time when you want to use a shadowing insert, because you can insert with it a record, which will overshadow the older record, so the older record won't be visible. This is achived by using the old record's id for the new record.
+    One of the main feature of SandDb is that it's immutable, which is a good thing, but sometimes you want to update or delete a record. That's the time when you want to use a shadowing insert, because you can insert with it a record, which will overshadow the older record, so the older record won't be visible. This is achived by using the old record's id for the new record.
 
-```ocaml
-let shadowing_record = { year = 2018; month = 5; day = 1; data="Some data 2"}
-Sanddb.insert_shadowing_record json_database id shadowing_record
-```
+    ```ocaml
+    let shadowing_record = { year = 2018; month = 5; day = 1; data="Some data 2"}
+    Sanddb.insert_shadowing_record json_database id shadowing_record
+    ```
 
-6. Read all record
+6. Read all records
 
-This will read out every record in the database both visible and shadowed record.
-You will get a list of tuples, where the first item is the oldest and the last item is the newest in the list. The tuple will consist of a record id and the record's content.
+    This will read out every record in the database both visible and shadowed record.
+    You will get a list of tuples, where the first item is the oldest and the last item is the newest in the list. The tuple will consist of a record id and the record's content.
 
-```ocaml
-Sanddb.read_all_records json_database ()
-```
+    ```ocaml
+    Sanddb.read_all_records json_database ()
+    ```
 
 7. Read visible records
 
-This will only read out the visible records in the database and will give back a list of tuples, where the first item is the newest and the last item is the oldest. So the order of the list items will be different in this case.
+    This will only read out the visible records in the database and will give back a list of tuples, where the first item is the newest and the last item is the oldest. So the order of the list items will be different in this case.
 
-```ocaml
-Sanddb.read_visible_records json_database ()
-```
+    ```ocaml
+    Sanddb.read_visible_records json_database ()
+    ```
