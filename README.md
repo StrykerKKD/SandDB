@@ -82,6 +82,8 @@ This how to is based on the example that you can find in the examples directory.
     (*Creating a json based database with test.txt file and Record_j generated serializer*)
     let json_database = Sanddb.create_json_database "test.txt" (module Record_j)
 
+    (*or*)
+
     (*Creating a biniou based database with test.txt file and Record_b generated serializer*)
     let biniou_database = Sanddb.create_biniou_database "test.txt" (module Record_b)
 
