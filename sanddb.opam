@@ -1,5 +1,5 @@
 opam-version: "1.2"
-maintainer: "kRobert Toth <kdstryker@gmail.com>"
+maintainer: "Robert Toth <kkdstryker@gmail.com>"
 authors: ["Robert Toth"]
 homepage: "https://github.com/StrykerKKD/SandDB"
 bug-reports: "https://github.com/StrykerKKD/SandDB/issues"
