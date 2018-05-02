@@ -3,7 +3,7 @@
 (library
  ((name        sanddb)
   (public_name sanddb)
-  (libraries (atdgen base lwt uuidm))))
+  (libraries (atdgen base lwt lwt.unix uuidm))))
 
 (rule
   ((targets (record_t.ml record_t.mli))
