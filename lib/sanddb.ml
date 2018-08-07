@@ -29,7 +29,6 @@ let deserialize_record_content record_data_serializer deserialized_record =
 
 let deserialize_record record_serializer record_data_serializer record =
   let open Serializer_converter in
-  let open Record_t in
   let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
   let unescaped_record = Caml.Scanf.unescaped record in
   let deserialized_record = Base.Result.try_with (fun () -> Record_Serializer.t_of_string unescaped_record)  in
@@ -45,7 +44,7 @@ let database_read_all_records file_path record_serializer record_data_serializer
 
 let filter_duplicate_record record (unique_record_ids, accumulator) =
   match record with
-  | Ok (id, data) ->
+  | Ok (id, _) ->
     if Base.List.mem unique_record_ids id ~equal: Record_Id.equal  then 
       (unique_record_ids, accumulator)
     else
