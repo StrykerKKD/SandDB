@@ -35,28 +35,28 @@ This how to is based on the example that you can find in the examples directory.
 
 2. Generate atd serializers for your record's type
 
-    a. Generate with jbuilder/dune(recommended)
+    a. Generate with dune
     
     This will generate the serializers in the build directory, so it will keep your work directory clean of generated files.
     
     ```
     ;This rule generates your records type file
     (rule
-        ((targets (record_t.ml record_t.mli))
-        (deps (record.atd))
-        (action (chdir ${ROOT} (run atdgen -t ${<})))))
+        (targets record_t.ml record_t.mli)
+        (deps record.atd)
+        (action (run atdgen -t %{deps})))
     
     ;This rule generates the json serializer
     (rule
-        ((targets (record_j.ml record_j.mli))
-        (deps (record.atd))
-        (action (chdir ${ROOT} (run atdgen -j ${<})))))
+        (targets record_j.ml record_j.mli)
+        (deps record.atd)
+        (action (run atdgen -j %{deps})))
 
     ;This rule generates the biniou serializer
     (rule
-        ((targets (record_b.ml record_b.mli))
-        (deps (record.atd))
-        (action (chdir ${ROOT} (run atdgen -b ${<})))))
+        (targets record_b.ml record_b.mli)
+        (deps record.atd)
+        (action (run atdgen -b %{deps})))
     ```
     ----
 
