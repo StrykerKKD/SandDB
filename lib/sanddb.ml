@@ -1,16 +1,12 @@
 open Lwt.Infix
 
-module Record_Id = struct
-  include Uuidm
-end
-
 module type Database = sig
   type t
   val file_path : string
-  val read_all_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
-  val read_visible_records : unit -> (Record_Id.t * t, exn) result list Lwt.t
-  val insert_record : t -> Record_Id.t Lwt.t
-  val insert_shadowing_record : Record_Id.t -> t -> Record_Id.t Lwt.t
+  val read_all_records : unit -> (Record_id.t * t, exn) result list Lwt.t
+  val read_visible_records : unit -> (Record_id.t * t, exn) result list Lwt.t
+  val insert_record : t -> Record_id.t Lwt.t
+  val insert_shadowing_record : Record_id.t -> t -> Record_id.t Lwt.t
 end
 
 let deserialize_record_data (type a) record_data_serializer record_data =
@@ -20,7 +16,7 @@ let deserialize_record_data (type a) record_data_serializer record_data =
 
 let deserialize_record_content record_data_serializer deserialized_record = 
   let open Record_t in
-  let record_id = Base.Result.of_option ~error: (Failure "Record id parsing failed") (Record_Id.of_string deserialized_record.id) in
+  let record_id = Base.Result.of_option ~error: (Failure "Record id parsing failed") (Record_id.of_string deserialized_record.id) in
   let record_data = Base.Result.try_with (fun () -> deserialize_record_data record_data_serializer deserialized_record.data) in
   match record_id, record_data with
   | Ok id, Ok data -> Ok (id, data)
@@ -45,7 +41,7 @@ let database_read_all_records file_path record_serializer record_data_serializer
 let filter_duplicate_record record (unique_record_ids, accumulator) =
   match record with
   | Ok (id, _) ->
-    if Base.List.mem unique_record_ids id ~equal: Record_Id.equal  then 
+    if Base.List.mem unique_record_ids id ~equal: Record_id.equal  then 
       (unique_record_ids, accumulator)
     else
       (id :: unique_record_ids , record :: accumulator)
@@ -68,7 +64,7 @@ let serialize_record record_serializer record_data_serializer record_id record_d
   let open Record_t in
   let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
   let serialized_record_data = serialize_record_data record_data_serializer record_data in
-  let serialized_id = Record_Id.to_string record_id in
+  let serialized_id = Record_id.to_string record_id in
   let record = {id = serialized_id; data = serialized_record_data} in
   let serialized_record = Record_Serializer.string_of_t record in 
   Caml.String.escaped serialized_record
@@ -81,7 +77,7 @@ let write_to_file file_path serialized_record =
     (fun channel -> Lwt_io.write_line channel serialized_record)
 
 let database_insert_record file_path record_serializer record_data_serializer record_data =
-  let record_id = Record_Id.v `V4 in 
+  let record_id = Record_id.v `V4 in 
   let serialized_record = serialize_record record_serializer record_data_serializer record_id record_data in
   write_to_file file_path serialized_record >>= fun () ->
   Lwt.return record_id
