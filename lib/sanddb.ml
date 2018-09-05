@@ -41,17 +41,17 @@ let database_read_all_records file_path record_serializer record_data_serializer
 let filter_duplicate_record record (unique_record_ids, accumulator) =
   match record with
   | Ok (id, _) ->
-    if Base.List.mem unique_record_ids id ~equal: Record_id.equal  then 
+    if Base.Set.mem unique_record_ids id then 
       (unique_record_ids, accumulator)
     else
-      (id :: unique_record_ids , record :: accumulator)
-  | error -> (unique_record_ids, error :: accumulator)  
+      (Base.Set.add unique_record_ids id, Base.List.cons record accumulator)
+  | error -> (unique_record_ids, Base.List.cons error accumulator)  
 
 let database_read_visible_records file_path record_serializer record_data_serializer =
   database_read_all_records file_path record_serializer record_data_serializer >>= fun records ->
   let (_, visible_records) = Base.List.fold_right records
       ~f:filter_duplicate_record
-      ~init:([],[]) in
+      ~init:(Base.Set.empty (module Record_id), []) in
   Lwt.return visible_records
 
 let serialize_record_data (type a) record_data_serializer record_data =
