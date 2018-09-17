@@ -7,6 +7,6 @@ module type T = sig
   val insert_shadowing_record : Record_id.t -> t -> Record_id.t Lwt.t
 end
 
-val create_json_database : string -> (module Serializers.Json_serializer with type t = 'a) -> (module T with type t = 'a)
+val create_json_database : string -> (module Serializer.Json_serializer with type t = 'a) -> (module T with type t = 'a)
 
-val create_biniou_database : string -> (module Serializers.Biniou_serializer with type t = 'a) -> (module T with type t = 'a)
+val create_biniou_database : string -> (module Serializer.Biniou_serializer with type t = 'a) -> (module T with type t = 'a)

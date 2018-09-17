@@ -8,8 +8,7 @@ module type T = sig
 end
 
 let deserialize_record_data (type a) record_data_serializer record_data =
-  let open Serializer_converter in
-  let module Record_Data_Serializer = (val record_data_serializer : Serializer with type t = a) in
+  let module Record_Data_Serializer = (val record_data_serializer : Serializer.Generic_serializer with type t = a) in
   Record_Data_Serializer.t_of_string record_data
 
 let deserialize_record_content record_data_serializer deserialized_record = 
@@ -22,8 +21,7 @@ let deserialize_record_content record_data_serializer deserialized_record =
   | _ , (Error _ as error) -> error
 
 let deserialize_record record_serializer record_data_serializer record =
-  let open Serializer_converter in
-  let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
+  let module Record_Serializer = (val record_serializer : Serializer.Generic_serializer with type t = Record_t.t) in
   let unescaped_record = Caml.Scanf.unescaped record in
   let deserialized_record = Base.Result.try_with (fun () -> Record_Serializer.t_of_string unescaped_record)  in
   Base.Result.bind deserialized_record ~f:(deserialize_record_content record_data_serializer)
@@ -55,14 +53,12 @@ let database_read_visible_records file_path record_serializer record_data_serial
   Lwt.return visible_records
 
 let serialize_record_data (type a) record_data_serializer record_data =
-  let open Serializer_converter in
-  let module Record_Data_Serializer = (val record_data_serializer : Serializer with type t = a) in
+  let module Record_Data_Serializer = (val record_data_serializer : Serializer.Generic_serializer with type t = a) in
   Record_Data_Serializer.string_of_t record_data
 
 let serialize_record record_serializer record_data_serializer record_id record_data =
-  let open Serializer_converter in
   let open Record_t in
-  let module Record_Serializer = (val record_serializer : Serializer with type t = Record_t.t) in
+  let module Record_Serializer = (val record_serializer : Serializer.Generic_serializer with type t = Record_t.t) in
   let serialized_record_data = serialize_record_data record_data_serializer record_data in
   let serialized_id = Record_id.to_string record_id in
   let record = {id = serialized_id; data = serialized_record_data} in
