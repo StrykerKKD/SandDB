@@ -1,4 +1,5 @@
 module Database = Database
+module Record_id = Record_id
 
 (** [Sanddb.create_json_database file_name json_serializer] will create a json database based on the provided:
  - [file_name] which will be tha base of the database
