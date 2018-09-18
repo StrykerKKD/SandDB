@@ -32,9 +32,12 @@ let deserialize_records record_serializer record_data_serializer raw_data =
   let serializer = deserialize_record record_serializer record_data_serializer in
   Base.List.map ~f:serializer raw_records
 
+let read_from_file file_path = 
+  Lwt_io.with_file ~mode: Input file_path (fun channel -> Lwt_io.read channel)
+
 let database_read_all_records file_path record_serializer record_data_serializer =
   let open Lwt.Infix in
-  Lwt_io.with_file ~mode: Input file_path (fun channel -> Lwt_io.read channel) >>= fun raw_data ->
+  read_from_file file_path >>= fun raw_data ->
   let records = deserialize_records record_serializer record_data_serializer raw_data in
   Lwt.return records
 
@@ -68,7 +71,7 @@ let serialize_record record_serializer record_data_serializer record_id record_d
   let serialized_record = Record_Serializer.string_of_t record in 
   Caml.String.escaped serialized_record
 
-let write_to_file file_path serialized_record =
+let append_to_file file_path serialized_record =
   Lwt_io.with_file 
     ~flags:([Unix.O_WRONLY; Unix.O_NONBLOCK; Unix.O_APPEND; Unix.O_CREAT]) 
     ~mode: Output 
@@ -79,13 +82,13 @@ let database_insert_record file_path record_serializer record_data_serializer re
   let open Lwt.Infix in
   let record_id = Record_id.v `V4 in 
   let serialized_record = serialize_record record_serializer record_data_serializer record_id record_data in
-  write_to_file file_path serialized_record >>= fun () ->
+  append_to_file file_path serialized_record >>= fun () ->
   Lwt.return record_id
 
 let database_insert_shadowing_record file_path record_serializer record_data_serializer record_id record_data =
   let open Lwt.Infix in
   let serialized_record = serialize_record record_serializer record_data_serializer record_id record_data in
-  write_to_file file_path serialized_record >>= fun () ->
+  append_to_file file_path serialized_record >>= fun () ->
   Lwt.return record_id
 
 let create_database_module (type a) file_path record_serializer record_data_serializer = 
