@@ -26,13 +26,16 @@ let deserialize_record record_serializer record_data_serializer record =
   let deserialized_record = Base.Result.try_with (fun () -> Record_Serializer.t_of_string unescaped_record)  in
   Base.Result.bind deserialized_record ~f:(deserialize_record_content record_data_serializer)
 
-let database_read_all_records file_path record_serializer record_data_serializer =
-  let open Lwt.Infix in
-  Lwt_io.with_file ~mode: Input file_path (fun channel -> Lwt_io.read channel) >>= fun raw_data ->
+let deserialize_records record_serializer record_data_serializer raw_data =
   let cleaned_raw_data = String.trim raw_data in
   let raw_records = String.split_on_char '\n' cleaned_raw_data in
   let serializer = deserialize_record record_serializer record_data_serializer in
-  let records = Base.List.map ~f:serializer raw_records in
+  Base.List.map ~f:serializer raw_records
+
+let database_read_all_records file_path record_serializer record_data_serializer =
+  let open Lwt.Infix in
+  Lwt_io.with_file ~mode: Input file_path (fun channel -> Lwt_io.read channel) >>= fun raw_data ->
+  let records = deserialize_records record_serializer record_data_serializer raw_data in
   Lwt.return records
 
 let filter_duplicate_record record (unique_record_ids, accumulator) =
