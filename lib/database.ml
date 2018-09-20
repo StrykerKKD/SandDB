@@ -32,7 +32,7 @@ let database_read_visible_records file_path record_serializer record_data_serial
 
 let database_insert_record file_path record_serializer record_data_serializer record_data =
   let open Lwt.Infix in
-  let record_id = Record_id.v `V4 in 
+  let record_id = Record_id.create_random_id () in 
   let serialized_record = Record_serializer.serialize_record record_serializer record_data_serializer record_id record_data in
   File_io.append_to_file file_path serialized_record >>= fun () ->
   Lwt.return record_id
