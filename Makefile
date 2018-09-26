@@ -21,3 +21,6 @@ clean:
 
 doc:
 	dune build @doc
+
+update-doc:
+	rsync -r _build/default/_doc/_html/ docs/
