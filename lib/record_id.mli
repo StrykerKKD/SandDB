@@ -1,3 +1,7 @@
+(** [Sanddb.Record_id] is the basic record id type, which idetifies a record in the database.
+    It's compatible with base's Set type.
+*)
+
 type t
 type comparator_witness
 val create_random_id : unit -> t

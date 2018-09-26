@@ -4,7 +4,7 @@ module Serializer = Serializer
 
 (** [Sanddb.create_json_database file_name json_serializer] will create a json database based on the provided:
  - [file_name] which will be tha base of the database
- - [json_serializer] which will be responsible with the serialization between the database and the client
+ - [json_serializer] which will be responsible for the serialization between the database and the client
  This function will return a first class database module, which can be used to communicate with the database.
 *)
 let create_json_database file_path json_serializer = 
@@ -12,7 +12,7 @@ let create_json_database file_path json_serializer =
 
 (** [Sanddb.create_biniou_database file_name biniou_serializer] will create a biniou database based on the provided:
  - [file_name] which will be tha base of the database
- - [biniou_serializer] which will be responsible with the serialization between the database and the client
+ - [biniou_serializer] which will be responsible for the serialization between the database and the client
  This function will return a first class database module, which can be used to communicate with the database.
 *)
 let create_biniou_database file_path biniou_serializer =

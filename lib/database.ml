@@ -1,3 +1,8 @@
+(** [Sanddb.Database] contains the type of the database and it's internal implementation.*)
+
+(** Database.T is the (module) type of the database. 
+  In SandDB every database instance will have this type regardles of the serializing method.
+*)
 module type T = sig
   type t
   val file_path : string

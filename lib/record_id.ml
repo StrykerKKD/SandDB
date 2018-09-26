@@ -1,4 +1,3 @@
-(** [Sanddb.Record_Id] is the basic record id type, which idetifies a record in the database.*)
 module T = struct
   include Uuidm
   let create_random_id () = v `V4

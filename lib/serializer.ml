@@ -1,3 +1,5 @@
+(** [Sanddb.Serializer] contains the different kind of serializers that are possible with SandDB.*)
+
 module type Generic_serializer = sig
   type t
   val t_of_string : string -> t
