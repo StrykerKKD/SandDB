@@ -10,6 +10,9 @@ SandDB is:
 - Concurrent: SandDB is based on lwt, so every database operation is asynchronous.
 - Supports multiple serializers: SandDB supports both json and biniou serialization format thanks to the atdgen library.
 
+## Documentation
+[API documentation](https://strykerkkd.github.io/SandDB/)
+
 ## How to use it?
 This how to is based on the example that you can find in the examples directory.
 
