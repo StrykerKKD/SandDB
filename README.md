@@ -126,3 +126,27 @@ This how to is based on the example that you can find in the examples directory.
     ```ocaml
     Sanddb.read_visible_records database ()
     ```
+
+## How to run example
+
+Prerequisite: Install [esy](https://esy.sh/)
+
+Build repository: `esy`
+
+Build example: `esy dune build examples/main.exe`
+
+Run example: `esy dune exec examples/main.exe`
+
+## How to with for contributors
+
+Prerequisite: Install [esy](https://esy.sh/)
+
+Build it: `esy`
+
+Test it: `esy test`
+
+Run repl: `esy utop`
+
+Generate Doc: `esy doc`
+
+Update docs folder: `esy update-doc`

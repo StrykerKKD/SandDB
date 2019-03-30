@@ -1,5 +1,10 @@
 *~
 _opam
 _build
+_esy
+_release
+node_modules/
 .merlin
+*.byte
+*.native
 *.install
