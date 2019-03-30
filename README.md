@@ -137,7 +137,7 @@ Build example: `esy dune build examples/main.exe`
 
 Run example: `esy dune exec examples/main.exe`
 
-## How to with for contributors
+## How to for contributors
 
 Prerequisite: Install [esy](https://esy.sh/)
 
