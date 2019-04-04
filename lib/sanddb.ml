@@ -8,7 +8,7 @@ module Serializer = Serializer
  This function will return a first class database module, which can be used to communicate with the database.
 *)
 let create_json_database file_path json_serializer = 
-  Database.create_json_database file_path json_serializer
+  Database_impl.create_json_database file_path json_serializer
 
 (** [Sanddb.create_biniou_database file_name biniou_serializer] will create a biniou database based on the provided:
  - [file_name] which will be tha base of the database
@@ -16,7 +16,7 @@ let create_json_database file_path json_serializer =
  This function will return a first class database module, which can be used to communicate with the database.
 *)
 let create_biniou_database file_path biniou_serializer =
-  Database.create_biniou_database file_path biniou_serializer
+  Database_impl.create_biniou_database file_path biniou_serializer
 
 (** [Sanddb.read_all_records database unit] gives back every database record, both visible and shadowed ones. The result can contain duplicate record ids.
 The first record in the list is the oldest record and the last one is the newest record.
