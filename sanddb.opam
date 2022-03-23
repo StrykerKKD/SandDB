@@ -16,6 +16,7 @@ depends: [
   "base"
   "lwt"
   "uuidm"
+  "alcotest"
   "odoc" {with-doc}
 ]
 build: [

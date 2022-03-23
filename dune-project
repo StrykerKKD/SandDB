@@ -21,6 +21,6 @@
  (name sanddb)
  (synopsis "A simple immutable database for the masses")
  (description "SandDB is a simple easy async immutable database")
- (depends ocaml dune atdgen base lwt uuidm))
+ (depends ocaml dune atdgen base lwt uuidm alcotest))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
