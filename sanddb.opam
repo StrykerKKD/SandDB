@@ -10,7 +10,7 @@ homepage: "https://github.com/StrykerKKD/SandDB"
 doc: "https://strykerkkd.github.io/SandDB/"
 bug-reports: "https://github.com/StrykerKKD/SandDB/issues"
 depends: [
-  "ocaml"
+  "ocaml" {>= "4.6.0"}
   "dune" {>= "3.0"}
   "atdgen"
   "base"
