@@ -129,6 +129,10 @@ This how to is based on the example that you can find in the examples directory.
 
 ## How to run example
 
+Install opam: https://opam.ocaml.org/doc/Install.html
+
+Install dependencies: `opam install . --deps-only --with-test`
+
 Build repository: `dune build`
 
 Run example: `dune exec examples/main.exe`
