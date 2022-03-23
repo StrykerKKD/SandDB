@@ -129,24 +129,16 @@ This how to is based on the example that you can find in the examples directory.
 
 ## How to run example
 
-Prerequisite: Install [esy](https://esy.sh/)
+Build repository: `dune build`
 
-Build repository: `esy`
-
-Build example: `esy dune build examples/main.exe`
-
-Run example: `esy dune exec examples/main.exe`
+Run example: `dune exec examples/main.exe`
 
 ## How to for contributors
 
-Prerequisite: Install [esy](https://esy.sh/)
+Test it: `dune test`
 
-Build it: `esy`
+Run repl: `dune utop`
 
-Test it: `esy test`
+Generate Doc: `dune doc`
 
-Run repl: `esy utop`
-
-Generate Doc: `esy doc`
-
-Update docs folder: `esy update-doc`
+Update docs folder: `make update-doc`

@@ -4,6 +4,8 @@ let tests_sexp_of_t () =
     let actual_value = Sanddb.Record_id.sexp_of_t test_id |> Base.Sexp.to_string in
     Alcotest.(check string) "sexp_of_t should return correct Sexp" expected_value actual_value
 
-let tests = [
-    "sexp_of_t", `Quick, tests_sexp_of_t;
-]
+let () =
+  Alcotest.run "Record Id tests" [
+      ( "record-conversion-test", 
+        [ Alcotest.test_case "tests_sexp_of_t" `Quick tests_sexp_of_t ] );
+  ]

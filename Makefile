@@ -1,6 +1,6 @@
 # Frontend to dune.
 
-.PHONY: default build install uninstall test clean
+.PHONY: default build install uninstall test clean run-example
 
 default: build
 
@@ -8,7 +8,13 @@ build:
 	dune build
 
 test:
-	dune runtest -f
+	dune test
+
+run-example:
+	dune exec examples/main.exe
+
+utop:
+	dune utop
 
 install:
 	dune install
